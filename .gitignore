@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+.pytest_cache/
+
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.deep-venv/
+
+# MLflow artifacts
+mlruns/
+mlruns.db
+
+# Data & models (generated artifacts)
+data/*.db
+models/*.keras
+models/*.pkl
+
+# IDE
+.idea/
+.vscode/

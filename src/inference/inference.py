@@ -1,99 +1,77 @@
 import numpy as np
 import pandas as pd
-from tensorflow.keras.preprocessing.sequence import TimeseriesGenerator
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error
 
-from src.common.common import CONFIG
-from database import save_predictions, get_last_timestamp, load_weather_data,get_context
+from src.common.common import CONFIG, ROOT_DIR
+from src.data.database import load_weather_data, save_predictions
+from src.training.preprocessing import run_preprocessing, create_sequences, prepare_inference_input, FEATURE_COLS
+from src.training.train import inverse_transform_multi
+import mlflow
+import pickle
 
 
+def run_inference(run_date=None):
+
+    lookback   = CONFIG["model"]["lookback"]
+    horizon    = CONFIG["model"]["horizon"]
+    model_name = CONFIG["model"]["name"]
+
+    # ── MLflow ──
+    mlflow.set_tracking_uri(CONFIG["mlflow"]["tracking_uri"])
+    model = mlflow.keras.load_model(f"models:/{model_name}@champion")
+    print(f" Modèle chargé : models:/{model_name}@champion")
+
+    # ── Données ──
+    df = load_weather_data()
+    if run_date is not None:
+        df = df[df.index <= run_date]
+
+    # ── Scaler ──
+    scaler_path = CONFIG["paths"]["scaler_path"] 
+    with open(scaler_path, "rb") as f:
+        scaler = pickle.load(f)
+
+    # ── Preprocessing minimal ──
+    df_resampled, scaled_data, last_sequence = prepare_inference_input(df, scaler, lookback)
+
+    # ── Prédiction ──
+    n_features      = scaled_data.shape[1]
+    X_input         = last_sequence.reshape(1, lookback, n_features)
+    forecast_scaled = model.predict(X_input)[0]  
+
+    # ── Inverse scaling ──
+    forecast_real = inverse_transform_multi(
+        forecast_scaled.reshape(1, -1),
+        scaler,
+        n_features
+    )[0]  # (horizon,)
+
+    # ── Timestamps futurs ──
+    forecast_index = pd.date_range(
+        start=df_resampled.index[-1] + pd.Timedelta(hours=3),
+        periods=horizon,
+        freq="3h"   
+    )
+
+    # ── Sauvegarde ──
+    save_predictions(
+        model_name=model_name,
+        timestamps=forecast_index,
+        predictions=forecast_real,
+        horizon=horizon
+    )
+
+    print(f" Prédictions sauvegardées ({forecast_index[0]} - {forecast_index[-1]})")
+
+    return forecast_index, forecast_real
 
 
-# ─────────────────────────────────────────
-# PREDICTIONS PAR MODELE
-# ─────────────────────────────────────────
+if __name__ == "__main__":
+    forecast_index, forecast_real = run_inference()
 
-def predict_arima(model_result, horizon):
-    model    = model_result["model"]
-    forecast = model.forecast(steps=horizon)
-    return forecast.values
-
-
-def predict_sarima(model_result, horizon):
-    model    = model_result["model"]
-    forecast = model.forecast(steps=horizon)
-    return forecast.values
-
-
-def predict_lstm(model_result, horizon):
-    """Fenêtre glissante : prédit point par point"""
-    model    = model_result["model"]
-    scaler   = model_result["scaler"]
-    lookback = CONFIG["model"]["lookback"]
-
-    # Récupérer le contexte depuis la BDD
-    context     = get_context(n_points=lookback)
-    context_sc  = scaler.transform(context.values.reshape(-1, 1))
-
-    predictions = []
-    window      = context_sc.copy()
-
-    for _ in range(horizon):
-        x    = window.reshape(1, lookback, 1)
-        pred = model.predict(x, verbose=0)
-        predictions.append(pred[0, 0])
-
-        # Glisser la fenêtre
-        window = np.append(window[1:], pred, axis=0)
-
-    predictions = np.array(predictions).reshape(-1, 1)
-    return scaler.inverse_transform(predictions).flatten()
-
-
-# ─────────────────────────────────────────
-# ORCHESTRATION
-# ─────────────────────────────────────────
-
-def run_inference(models, test, inference_date=None):
-    horizon        = CONFIG["inference"]["horizon"]
-    model_version  = CONFIG["inference"]["model_version"]
-    inference_date = inference_date or pd.Timestamp.now().strftime("%Y-%m-%d")
-
-    predict_fn = {
-        "ARIMA":  predict_arima,
-        "SARIMA": predict_sarima,
-        "LSTM":   predict_lstm
-    }
-
-    for model_name, model_result in models.items():
-        print(f" Inference {model_name}...")
-
-        # Générer les prédictions
-        predictions = predict_fn[model_name](model_result, horizon)
-
-        # Timestamps des prédictions
-        last_date  = get_last_timestamp()
-        freq       = CONFIG["data"]["resample_freq"]
-        timestamps = pd.date_range(
-            start=last_date + pd.Timedelta(hours=3),
-            periods=horizon,
-            freq=freq
-        )
-
-        # Métriques sur le test
-        test_aligned = test.iloc[-len(predictions):]
-        rmse = root_mean_squared_error(test_aligned, predictions)
-        mae  = mean_absolute_error(test_aligned, predictions)
-        print(f"   RMSE test : {rmse:.3f} | MAE test : {mae:.3f}")
-
-        # Sauvegarder en BDD
-        save_predictions(
-            model_name    = model_name,
-            model_version = model_version,
-            inference_date= inference_date,
-            timestamps    = timestamps,
-            predictions   = predictions,
-            horizon       = horizon
-        )
-
-    print(" Inference terminée")
+    # # Affichage rapide
+    # df_forecast = pd.DataFrame({
+    #     "timestamp":   forecast_index,
+    #     "temperature": forecast_real
+    # })
+    # print(df_forecast)

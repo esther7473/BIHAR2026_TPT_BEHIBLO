@@ -1,6 +1,6 @@
 import sqlite3
 import pandas as pd
-from common import CONFIG
+from src.common.common import CONFIG
 
 DB_PATH = CONFIG["paths"]["db_path"]
 
@@ -37,7 +37,7 @@ def init_db():
 
 def save_weather_data(df):
     conn = get_connection()
-    df.to_sql("weather_data", conn, if_exists="replace", index=True)
+    df.to_sql("weather_data", conn, if_exists="append", index=True)
     conn.close()
 
 
@@ -50,12 +50,19 @@ def save_predictions(model_name, timestamps, predictions, horizon):
         "predicted_value": predictions
     })
     df.to_sql("predictions", conn, if_exists="append", index=False)
+    conn.commit() 
     conn.close()
+
 
 
 def load_weather_data():
     conn = get_connection()
-    df = pd.read_sql("SELECT * FROM weather_data", conn, index_col="timestamp", parse_dates=["timestamp"])
+    df = pd.read_sql(
+        "SELECT * FROM weather_data",
+        conn,
+        index_col="timestamp",
+        parse_dates=["timestamp"]
+    )
     conn.close()
     return df
 
