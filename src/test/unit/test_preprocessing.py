@@ -8,9 +8,6 @@ from src.training.preprocessing import (
     run_preprocessing, prepare_inference_input, FEATURE_COLS
 )
 
-
-
-
 @pytest.fixture
 def df_hourly():
     """DataFrame horaire avec 3000 points pour les tests."""
@@ -69,10 +66,30 @@ def test_scale_data(df_hourly):
 
     assert scaled_train.shape == (len(train), 5)
     assert scaled_test.shape  == (len(test),  5)
+
+    # ✅ train est entre 0 et 1 car scaler fitté dessus
     assert scaled_train.min() >= 0
     assert scaled_train.max() <= 1
-    assert scaled_test.min() >= 0
-    assert scaled_test.max() <= 1
+
+    # ✅ test peut être hors [0,1] — c'est normal
+    assert scaled_test.shape == (len(test), 5)  # juste vérifier la shape
+
+
+def test_prepare_inference_input(df_hourly):
+    with patch("src.training.preprocessing.CONFIG", {
+        "data":  {"resample_freq": "3h", "test_size": 100},
+        "model": {"lookback": 24, "horizon": 24}
+    }):
+        df           = resample_3h(df_hourly)
+        df           = add_cyclic_features(df)
+        _, _, scaler = scale_data(df.iloc[:-100], df.iloc[-100:])
+
+        df_resampled, scaled, last_seq = prepare_inference_input(df_hourly, scaler, lookback=24)
+
+        assert last_seq.shape == (24, 5)
+        assert scaled.shape[1] == 5          # ✅ 5 features
+        assert df_resampled.index.name == "timestamp"
+
 
 
 def test_create_sequences():
@@ -105,19 +122,3 @@ def test_run_preprocessing(df_hourly):
         assert data["X_train"].shape[1] == 24  # lookback
         assert data["y_train"].shape[1] == 24  # horizon
 
-
-def test_prepare_inference_input(df_hourly):
-    with patch("src.training.preprocessing.CONFIG", {
-        "data":  {"resample_freq": "3h", "test_size": 100},
-        "model": {"lookback": 24, "horizon": 24}
-    }):
-        df           = resample_3h(df_hourly)
-        df           = add_cyclic_features(df)
-        _, _, scaler = scale_data(df.iloc[:-100], df.iloc[-100:])
-
-        df_resampled, scaled, last_seq = prepare_inference_input(df_hourly, scaler, lookback=24)
-
-        assert last_seq.shape  == (24, 5)
-        assert scaled.min()    >= 0
-        assert scaled.max()    <= 1
-        assert df_resampled.index.name == "timestamp"

@@ -1,0 +1,9 @@
+pytest
+fastapi
+uvicorn
+pydantic
+PyYAML
+requests
+scikit-learn
+numpy
+pandas
