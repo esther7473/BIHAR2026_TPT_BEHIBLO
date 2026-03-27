@@ -1,7 +1,19 @@
+import sys
 import pytest
 import numpy as np
 import pandas as pd
 from unittest.mock import patch, MagicMock
+
+# ✅ mock AVANT l'import de inference
+sys.modules["tensorflow"]                   = MagicMock()
+sys.modules["tensorflow.keras"]             = MagicMock()
+sys.modules["tensorflow.keras.models"]      = MagicMock()
+sys.modules["tensorflow.keras.layers"]      = MagicMock()
+sys.modules["tensorflow.keras.callbacks"]   = MagicMock()
+sys.modules["tensorflow.keras.optimizers"]  = MagicMock()
+sys.modules["mlflow"]                       = MagicMock()
+sys.modules["mlflow.keras"]                 = MagicMock()
+
 from src.inference.inference import run_inference
 
 
@@ -11,7 +23,6 @@ from src.inference.inference import run_inference
 
 @pytest.fixture
 def mock_model():
-    """Modèle factice qui retourne des prédictions aléatoires."""
     model = MagicMock()
     model.predict.return_value = np.random.rand(1, 24).astype("float32")
     return model
@@ -19,7 +30,6 @@ def mock_model():
 
 @pytest.fixture
 def mock_scaler():
-    """Scaler factice."""
     from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler()
     scaler.fit(np.random.uniform(0, 30, (1000, 5)))
@@ -28,7 +38,6 @@ def mock_scaler():
 
 @pytest.fixture
 def mock_df():
-    """DataFrame météo factice."""
     idx = pd.date_range("2025-01-01", periods=500, freq="h")
     return pd.DataFrame({"temperature": np.random.uniform(0, 20, 500)}, index=idx)
 
@@ -47,7 +56,6 @@ def test_run_inference_returns_correct_shapes(mock_model, mock_scaler, mock_df):
 
         forecast_index, forecast_real = run_inference()
 
-        # ✅ horizon = 24 timestamps
         assert len(forecast_index) == 24
         assert len(forecast_real)  == 24
 
@@ -62,7 +70,6 @@ def test_run_inference_timestamps_in_future(mock_model, mock_scaler, mock_df):
 
         forecast_index, _ = run_inference()
 
-        # ✅ fréquence 3h entre chaque timestamp
         diffs = forecast_index[1:] - forecast_index[:-1]
         assert all(d == pd.Timedelta(hours=3) for d in diffs)
 
@@ -75,7 +82,6 @@ def test_run_inference_with_run_date(mock_model, mock_scaler, mock_df):
          patch("builtins.open", MagicMock()), \
          patch("src.inference.inference.mlflow.set_tracking_uri"):
 
-        # ✅ run_date filtre les données
         forecast_index, forecast_real = run_inference(run_date="2025-01-10")
 
         assert len(forecast_index) == 24
@@ -92,5 +98,4 @@ def test_run_inference_calls_save_predictions(mock_model, mock_scaler, mock_df):
 
         run_inference()
 
-        # ✅ save_predictions a bien été appelé une fois
         mock_save.assert_called_once()
