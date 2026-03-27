@@ -3,8 +3,4 @@ uvicorn
 pydantic
 PyYAML
 requests
-mlflow-skinny
-numpy
-pandas
-scikit-learn
 pytest                
