@@ -7,3 +7,4 @@ mlflow-skinny
 numpy
 pandas
 scikit-learn
+pytest                
