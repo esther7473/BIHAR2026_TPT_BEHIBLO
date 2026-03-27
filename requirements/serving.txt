@@ -3,4 +3,5 @@ uvicorn
 pydantic
 PyYAML
 requests
-pytest                
+pytest       
+pandas         

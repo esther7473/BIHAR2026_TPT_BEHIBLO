@@ -9,6 +9,7 @@ from src.data.database import get_connection
 from src.common.common import CONFIG, ROOT_DIR
 from fastapi.responses import RedirectResponse
 from api.schemas import PredictionOut, CombinedOut, VersionOut
+import pandas as pd
 
 
 
@@ -81,17 +82,25 @@ def get_combined(
 
 @app.get("/version", response_model=VersionOut)
 def get_version():
-    mlflow.set_tracking_uri(CONFIG["mlflow"]["tracking_uri"])
-    client     = MlflowClient()
-    model_name = CONFIG["model"]["name"]
-
     try:
-        mv = client.get_model_version_by_alias(model_name, "champion")
+        model_path = CONFIG["paths"]["model_path"]
+
+        if not os.path.exists(model_path):
+            raise HTTPException(status_code=404, detail="Aucun modèle trouvé dans /models.")
+
+        # ✅ récupère les métadonnées depuis le fichier local
+        model_name    = CONFIG["model"]["name"]
+        model_version = os.path.getmtime(model_path)
+        model_date    = pd.Timestamp(model_version, unit="s").strftime("%Y-%m-%d %H:%M:%S")
+
         return {
-            "model_name":    mv.name,
-            "model_version": mv.version,
-            "run_id":        mv.run_id,
-            "stage":         "champion",
+            "model_name":    model_name,
+            "model_version": model_date,
+            # "run_id":        "local",
+            # "stage":         "champion",
         }
-    except Exception:
-        raise HTTPException(status_code=404, detail="Aucun modèle champion enregistré dans MLflow.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération du modèle : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
