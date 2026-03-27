@@ -7,3 +7,4 @@ requests
 scikit-learn
 numpy
 pandas
+httpx  
