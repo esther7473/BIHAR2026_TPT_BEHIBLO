@@ -1,0 +1,25 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+.git/
+.env
+.deep-venv/
+
+
+data/
+models/
+notebooks/
+mlruns/
+mlruns.db
+mlflow.db
+*.db
+*.pkl
+*.keras
+# *.h5
+
+# tests
+src/test/
+conftest.py
+# logs
+*.log
