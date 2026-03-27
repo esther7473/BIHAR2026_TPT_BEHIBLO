@@ -2,8 +2,6 @@
 import os
 import sqlite3
 import logging
-import mlflow
-from mlflow.tracking import MlflowClient
 from fastapi import FastAPI, Depends, Query, HTTPException
 from src.data.database import get_connection
 from src.common.common import CONFIG, ROOT_DIR
