@@ -57,7 +57,7 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
               -u ${{ github.actor }} \
               --password-stdin
-              
+
         - name: Build serving image
           run: |
             docker build \
@@ -124,6 +124,7 @@ jobs:
         run: |
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
           git fetch --unshallow || git fetch --all
+
 
       - name: Merge dev into main
         run: |
