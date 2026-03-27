@@ -83,12 +83,17 @@ jobs:
             -u ${{ github.actor }} \
             --password-stdin
 
+      - name: Set lowercase repository name
+        id: repo
+        run: echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Start API container
         run: |
           docker run -d \
             --name weather-api \
             -p 8000:8000 \
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ steps.repo.outputs.name }}:latest
+
 
       - name: Wait for API to be ready
         run: |
