@@ -18,10 +18,10 @@ jobs:
         run: pip install -r requirements/serving.txt
 
       - name: Run unit tests
-        run: pytest src/test/unit/ -v
+        run:  python -m pytest src/test/unit/ -v
 
       - name: Run integration tests
-        run: pytest src/test/integration/ -v
+        run:  python -m pytest src/test/integration/ -v
 
   merge:
     runs-on: ubuntu-latest
