@@ -9,8 +9,6 @@ __pycache__/
 # Virtual environments
 .deep-venv/
 
-#CI
-.github/
 # MLflow artifacts
 mlruns/
 mlruns.db
