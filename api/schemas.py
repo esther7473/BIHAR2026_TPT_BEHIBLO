@@ -22,5 +22,5 @@ class VersionOut(BaseModel):
     software_version: str = "0.0.0"
     model_name:       str
     model_version:    str | int  # ← accepte les deux
-    run_id:           str | None
-    stage:            str
+    # run_id:           str | None
+    # stage:            str

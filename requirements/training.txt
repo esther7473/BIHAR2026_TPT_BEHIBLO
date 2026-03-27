@@ -1,0 +1,7 @@
+tensorflow
+mlflow
+scikit-learn
+numpy
+pandas
+PyYAML
+requests
