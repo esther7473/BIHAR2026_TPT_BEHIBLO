@@ -14,7 +14,7 @@ class NoCloseConnection:
         self._conn = conn
 
     def close(self):
-        pass  
+        pass
 
     def __getattr__(self, name):
         return getattr(self._conn, name)
@@ -25,11 +25,12 @@ def db():
     conn    = sqlite3.connect(":memory:", check_same_thread=False)
     wrapped = NoCloseConnection(conn)
 
+    # get_connection retourne toujours le même wrapper (avec init_db intégré)
     with patch("src.data.database.get_connection", return_value=wrapped):
-        init_db()
+        init_db(conn)  # 👈 on passe la vraie connexion pour initialiser les tables
         yield wrapped
 
-    conn.close()  # ✅ ferme vraiment après le test
+    conn.close()
 
 
 def test_init_db(db):

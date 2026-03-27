@@ -114,6 +114,10 @@ jobs:
       - name: Run integration tests
         run: python -m pytest src/test/integration/ -v
 
+      - name: Show app logs on failure
+        if: failure()
+        run: docker logs <nom_du_container>
+
       - name: Stop container
         if: always()
         run: |
