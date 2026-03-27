@@ -6,5 +6,5 @@ PyYAML
 requests
 # scikit-learn
 # numpy
-# pandas
+pandas
 httpx  

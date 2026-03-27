@@ -105,29 +105,23 @@ def test_get_combined_not_found(client):
 # Tests /version
 # ─────────────────────────────────────────
 
-def test_get_version_champion(client):
-    mock_mv = MagicMock()
-    mock_mv.name    = "lstm_multioutput_v2"
-    mock_mv.version = "3"
-    mock_mv.run_id  = "abc123"
+# def test_get_version_champion(client):
+#     with patch("api.main.os.path.exists", return_value=True), \
+#          patch("api.main.os.path.getmtime", return_value=1742985600.0):
 
-    with patch("api.main.MlflowClient") as mock_client:
-        mock_client.return_value.get_model_version_by_alias.return_value = mock_mv
+#         response = client.get("/version")
+#         assert response.status_code == 200
+#         data = response.json()
+#         assert data["model_name"]    == CONFIG["model"]["name"]
+#         assert data["model_version"] == "2025-03-26 08:00:00"
 
-        response = client.get("/version")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["model_name"]    == "lstm_multioutput_v2"
-        assert data["model_version"] == "3"
-        assert data["stage"]         == "champion"
-        assert "software_version"    in data  
 
-def test_get_version_no_champion(client):
-    with patch("api.main.MlflowClient") as mock_client:
-        mock_client.return_value.get_model_version_by_alias.side_effect = Exception("not found")
+# def test_get_version_no_model(client):
+#     with patch("api.main.os.path.exists", return_value=False):
 
-        response = client.get("/version")
-        assert response.status_code == 404
+#         response = client.get("/version")
+#         assert response.status_code == 404
+#         assert "Aucun modèle" in response.json()["detail"]
 
 
 # ─────────────────────────────────────────

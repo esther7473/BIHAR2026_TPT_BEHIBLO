@@ -88,7 +88,6 @@ def get_version():
         if not os.path.exists(model_path):
             raise HTTPException(status_code=404, detail="Aucun modèle trouvé dans /models.")
 
-        # ✅ récupère les métadonnées depuis le fichier local
         model_name    = CONFIG["model"]["name"]
         model_version = os.path.getmtime(model_path)
         model_date    = pd.Timestamp(model_version, unit="s").strftime("%Y-%m-%d %H:%M:%S")
