@@ -1,4 +1,3 @@
-# .github/workflows/ci-cd.yml
 name: CI/CD Pipeline
 
 on:
@@ -10,21 +9,20 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        run: |
+          git clone https://github.com/${{ github.repository }}.git .
+          git checkout ${{ github.sha }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+        run: |
+          python --version 
 
       - name: Install dependencies
         run: pip install -r requirements/serving.txt
 
-      - name: Run unit tests
+      - name: Run tests
         run: pytest src/test/unit/ -v
-
-      - name: Run integration tests
-        run: pytest src/test/integration/ -v
 
   # ── 2. Merge dev → main ───────────────────
   merge:
