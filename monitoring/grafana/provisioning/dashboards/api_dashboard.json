@@ -1,0 +1,39 @@
+{
+  "title": "API Monitoring",
+  "panels": [
+    {
+      "title": "Requêtes par endpoint",
+      "type": "timeseries",
+      "targets": [{
+        "expr": "rate(http_requests_total[1m])",
+        "legendFormat": "{{handler}} {{method}}"
+      }]
+    },
+    {
+      "title": "Latence p95",
+      "type": "timeseries",
+      "targets": [{
+        "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+        "legendFormat": "{{handler}}"
+      }]
+    },
+    {
+      "title": "Prédictions générées",
+      "type": "stat",
+      "targets": [{
+        "expr": "sum(predictions_total) by (model_name)",
+        "legendFormat": "{{model_name}}"
+      }]
+    },
+    {
+      "title": "Distribution des valeurs prédites",
+      "type": "timeseries",
+      "targets": [{
+        "expr": "histogram_quantile(0.50, rate(prediction_value_bucket[5m]))",
+        "legendFormat": "médiane {{model_name}}"
+      }]
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}

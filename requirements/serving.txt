@@ -4,4 +4,6 @@ pydantic
 PyYAML
 requests
 pytest       
-pandas         
+pandas  
+keras
+prometheus-fastapi-instrumentator

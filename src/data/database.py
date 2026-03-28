@@ -44,6 +44,18 @@ def init_db(conn=None):
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS model_registry (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            model_name   TEXT,
+            version      INTEGER,
+            run_id       TEXT,
+            rmse         REAL,
+            promoted_at  TEXT DEFAULT (datetime('now')),
+            is_champion  INTEGER DEFAULT 1
+        )
+    """)
+
     conn.commit()
     if close_after:
         conn.close()
@@ -114,3 +126,24 @@ def get_context(n_points):
     df = pd.read_sql(query, conn, index_col="timestamp", parse_dates=["timestamp"])
     conn.close()
     return df.sort_index()
+
+def save_model_version(model_name: str, version: int, run_id: str, rmse: float):
+    conn = get_connection()
+    conn.execute("UPDATE model_registry SET is_champion = 0 WHERE model_name = ?", [model_name])
+    conn.execute("""
+        INSERT INTO model_registry (model_name, version, run_id, rmse, is_champion)
+        VALUES (?, ?, ?, ?, 1)
+    """, [model_name, version, run_id, rmse])
+    conn.commit()
+    conn.close()
+
+
+def get_champion_version(model_name: str):
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    row = conn.execute("""
+        SELECT * FROM model_registry
+        WHERE model_name = ? AND is_champion = 1
+    """, [model_name]).fetchone()
+    conn.close()
+    return dict(row) if row else None

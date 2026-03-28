@@ -3,27 +3,32 @@ import os
 import sqlite3
 import logging
 from fastapi import FastAPI, Depends, Query, HTTPException
-from src.data.database import get_connection
+from src.data.database import get_connection,get_champion_version
 from src.common.common import CONFIG, ROOT_DIR
 from fastapi.responses import RedirectResponse
 from api.schemas import PredictionOut, CombinedOut, VersionOut
 import pandas as pd
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram, Gauge
+from src.monitoring.monitoring import  generate_monitoring_data
 
 
 
-# ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-# ── App ───────────────────────────────────────────────────────────────────────
+
 app = FastAPI(title="Weather Forecast API", version="0.0.0")
+Instrumentator().instrument(app).expose(app)
+
+mae_gauge  = Gauge("model_mae",  "MAE entre prédictions et observations", ["model_name"])
+rmse_gauge = Gauge("model_rmse", "RMSE entre prédictions et observations", ["model_name"])
 
 
 @app.get("/")
 def root():
     return RedirectResponse(url="/docs")
 
-# ── Dependency ────────────────────────────────────────────────────────────────
 def get_db():
     conn = get_connection()
     conn.row_factory = sqlite3.Row
@@ -32,7 +37,13 @@ def get_db():
     finally:
         conn.close()
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+
+predictions_counter = Counter(
+    "predictions_total",
+    "Nombre de prédictions générées",
+    ["model_name"]
+)
+
 @app.get("/predictions", response_model=list[PredictionOut])
 def get_predictions(
     date:       str | None = Query(None, description="Filtre >= date (YYYY-MM-DD HH:MM)"),
@@ -49,6 +60,9 @@ def get_predictions(
     rows = db.execute(query + " ORDER BY timestamp", params).fetchall()
     if not rows:
         raise HTTPException(status_code=404, detail="Aucune prédiction trouvée.")
+    
+    predictions_counter.labels(model_name=model_name or "all").inc()
+
     return [dict(r) for r in rows]
 
 
@@ -81,23 +95,33 @@ def get_combined(
 @app.get("/version", response_model=VersionOut)
 def get_version():
     try:
-        model_path = CONFIG["paths"]["model_path"]
-
-        if not os.path.exists(model_path):
-            raise HTTPException(status_code=404, detail="Aucun modèle trouvé dans /models.")
-
-        model_name    = CONFIG["model"]["name"]
-        model_version = os.path.getmtime(model_path)
-        model_date    = pd.Timestamp(model_version, unit="s").strftime("%Y-%m-%d %H:%M:%S")
+        champion = get_champion_version(CONFIG["model"]["name"])
+        if not champion:
+            raise HTTPException(status_code=404, detail="Aucun modèle champion trouvé.")
 
         return {
-            "model_name":    model_name,
-            "model_version": model_date,
-            # "run_id":        "local",
-            # "stage":         "champion",
+            "model_name":    champion["model_name"],
+            "model_version": champion["version"],
+
         }
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Erreur lors de la récupération du modèle : {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.get("/monitoring")
+def monitoring(model_name: str = None, date: str = None):
+    try:
+        mae_gauge.labels(model_name=label).set(result["mae"])
+        rmse_gauge.labels(model_name=label).set(result["rmse"])
+
+        for row in result["data"]:
+            error = row["predicted_value"] - row["observed"]
+            prediction_error.labels(model_name=label).observe(error)
+
+        return generate_monitoring_data(model_name=model_name, date=date)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

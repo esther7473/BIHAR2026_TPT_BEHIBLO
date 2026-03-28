@@ -26,13 +26,11 @@ def clean_raw(df):
 
 
 def resample_3h(df):
-    """Rééchantillonne la température à 3h et retourne un DataFrame."""
-    freq = CONFIG["data"]["resample_freq"]   # ex: "3h"
+    freq = CONFIG["data"]["resample_freq"]  
     return df["temperature"].resample(freq).mean().to_frame()
 
 
 def add_cyclic_features(df):
-    """Ajoute les features cycliques heure et mois (sin/cos)."""
     df = df.copy()
     df["hour_sin"]   = np.sin(2 * np.pi * df.index.hour  / 24)
     df["hour_cos"]   = np.cos(2 * np.pi * df.index.hour  / 24)
@@ -89,12 +87,10 @@ def run_preprocessing(df_raw):
     lookback = CONFIG["model"]["lookback"]
     horizon  = CONFIG["model"]["horizon"]
 
-    # 1. Resample + features cycliques
-    df = resample_3h(df_raw)        # → (N, 1) colonne temperature à 3h
-    df = add_cyclic_features(df)    # → (N, 5) + hour_sin/cos, month_sin/cos
+    df = resample_3h(df_raw)        
+    df = add_cyclic_features(df)   
     df = remove_missing(df)
 
-    # 2. Split temporel
     train, test = train_test_split_ts(df)
 
     # 3. Normalisation

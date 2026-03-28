@@ -190,8 +190,8 @@ def train():
         mae_real   = mean_absolute_error(y_real, preds_real)
         rmse_real  = root_mean_squared_error(y_real, preds_real)
 
-        print(f"\n📊 Scaled  — MAE: {mae_scaled:.4f} | RMSE: {rmse_scaled:.4f}")
-        print(f"📊 Réel    — MAE: {mae_real:.2f}°C  | RMSE: {rmse_real:.2f}°C")
+        print(f"\n Scaled  — MAE: {mae_scaled:.4f} | RMSE: {rmse_scaled:.4f}")
+        print(f" Réel    — MAE: {mae_real:.2f}°C  | RMSE: {rmse_real:.2f}°C")
 
         # ── Log métriques epoch par epoch ──
         for epoch, (loss, val_loss) in enumerate(zip(

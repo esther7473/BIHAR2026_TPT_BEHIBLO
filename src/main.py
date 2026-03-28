@@ -10,11 +10,11 @@ def main(end_date=None):
     fetch_recent_data(end_date=end_date)
 
     print("\n========== 2. TRAIN ==========")
-    train()
+    # train()
 
     print("\n========== 3. INFERENCE ==========")
     # timestamps, predictions = run_inference()
     # print(f" {len(predictions)} prédictions générées : {timestamps[0]} → {timestamps[-1]}")
 
 if __name__ == "__main__":
-    main(end_date="2026-02-28")
+    main(end_date="2026-03-03")
