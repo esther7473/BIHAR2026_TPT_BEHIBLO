@@ -4,10 +4,11 @@ on:
   push:
     branches: [dev]
 
+
 jobs:
 
   versioning:
-  
+
   # 24.04 est la dernière version LTS
     runs-on: ubuntu-24.04
     outputs:
