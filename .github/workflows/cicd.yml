@@ -12,10 +12,12 @@ jobs:
     outputs:
       version: ${{ steps.get_sha.outputs.version }}
     steps:
-      - name: Get commit SHA
-        uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5 #SHA commit version 6.0.0
-        id: get_sha
-        run: echo "version=${{ github.sha }}" >> $GITHUB_OUTPUT
+       - name: Checkout
+         uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5
+
+       - name: Get commit SHA
+         id: get_sha
+         run: echo "version=${{ github.sha }}" >> $GITHUB_OUTPUT
 
   unit-tests:
     runs-on: ubuntu-latest
