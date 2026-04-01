@@ -2,7 +2,7 @@ import os
 import sqlite3
 import logging
 from fastapi import FastAPI, Depends, Query, HTTPException
-from src.data.database import get_connection,get_champion_version
+from src.data.database import get_connection
 from src.common.common import CONFIG, ROOT_DIR
 from fastapi.responses import RedirectResponse
 from api.schemas import PredictionOut, CombinedOut, VersionOut

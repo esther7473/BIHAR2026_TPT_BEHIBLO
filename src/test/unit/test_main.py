@@ -41,8 +41,7 @@ def client(db):
         try:
             yield db
         finally:
-            pass  # ne pas fermer la BD de test
-
+            pass 
     app.dependency_overrides[__import__("api.main", fromlist=["get_db"]).get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
