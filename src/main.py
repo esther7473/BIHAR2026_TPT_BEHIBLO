@@ -13,8 +13,11 @@ def main(end_date=None):
     # train()
 
     print("\n========== 3. INFERENCE ==========")
-    # timestamps, predictions = run_inference()
-    # print(f" {len(predictions)} prédictions générées : {timestamps[0]} → {timestamps[-1]}")
+    timestamps, predictions = run_inference()
+    print(f" {len(predictions)} prédictions générées : {timestamps[0]} → {timestamps[-1]}")
+
+    print("\n========== 1. FETCH PREDICTED ==========")
+    fetch_recent_data(end_date=timestamps[-1])
 
 if __name__ == "__main__":
     main(end_date="2026-03-03")

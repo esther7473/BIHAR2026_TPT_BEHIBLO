@@ -7,11 +7,13 @@ on:
 jobs:
 
   versioning:
-    runs-on: ubuntu-latest
+  # 24.04 est la dernière version LTS
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.get_sha.outputs.version }}
     steps:
       - name: Get commit SHA
+        uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5 #SHA commit version 6.0.0
         id: get_sha
         run: echo "version=${{ github.sha }}" >> $GITHUB_OUTPUT
 
@@ -19,38 +21,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        run: |
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
-          git checkout ${{ github.sha }}
+        uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5
+        with:
+          ref: ${{ github.sha }}
+
+      
+      - name: Set up Python
+        uses: actions/setup-python@4267e283df95c05d9f16ece6624106f44613b489
+        with:
+          python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: requirements/test.txt
+
+      - name: Verify installation
+        # shell: bash
+        run: python3 --version
 
       - name: Install dependencies
         run: pip install -r requirements/test.txt
 
       - name: Run unit tests
-        run: |
-          python -m pytest src/test/unit/ -v 
+        run: python -m pytest src/test/unit/ -v 
 
-  # ── 3. Build & Push (attend versioning + unit-tests) ───────────
 
   build-and-push:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-24.04
       needs: [versioning, unit-tests]
+
+      permissions:
+        contents: write 
       steps:
+
         - name: Checkout
-          run: |
-            git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
-            git checkout ${{ github.sha }}
+          uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5
+          with:
+            ref: ${{ github.sha }}
 
         - name: Set lowercase repository name
           id: repo
           run: echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-
-        - name: Log in to Docker Hub
-          run: |
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
-              -u ${{ secrets.DOCKERHUB_USERNAME }} \
-              --password-stdin
 
         - name: Log in to GHCR
           run: |
@@ -62,19 +72,20 @@ jobs:
           run: |
             docker build \
               --target serving \
-              -t ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }} \
-              -t ghcr.io/${{ steps.repo.outputs.name }}:latest \
-              .
-
+              -t ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }}  .
+ 
+    # \
+    # -t ghcr.io/${{ steps.repo.outputs.name }}:latest \
+             
         - name: Push serving image
           run: |
             docker push ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }}
-            docker push ghcr.io/${{ steps.repo.outputs.name }}:latest
+    # docker push ghcr.io/${{ steps.repo.outputs.name }}:latest
 
     
-    # ── 4. Integration tests (attend build) ────────────────────────
+ 
   integration-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-and-push
     steps:
       - name: Log in to GHCR
@@ -92,7 +103,7 @@ jobs:
           docker run -d \
             --name weather-api \
             -p 8000:8000 \
-            ghcr.io/${{ steps.repo.outputs.name }}:latest
+            ghcr.io/${{ steps.repo.outputs.name }}:{{ needs.versioning.outputs.version }}
 
 
       - name: Wait for API to be ready
@@ -104,10 +115,10 @@ jobs:
           done
 
       - name: Checkout
-        run: |
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
-          git checkout ${{ github.sha }}
-
+        uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5
+        with:
+            ref: ${{ github.sha }}
+            
       - name: Install test dependencies
         run: pip install pytest requests
 
@@ -124,15 +135,16 @@ jobs:
           docker stop weather-api
           docker rm weather-api
 
-  # ── 5. Merge dev → main (tout est OK) ──────────────────────────
+
   merge:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-and-push
     steps:
+      
       - name: Checkout
-        run: |
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
-          git fetch --unshallow || git fetch --all
+        uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5
+        with:
+            ref: ${{ github.sha }}
 
 
       - name: Merge dev into main

@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-# ── Schemas ───────────────────────────────────────────────────────────────────
 class PredictionOut(BaseModel):
     id:              int
     model_name:      str
@@ -21,6 +20,6 @@ class CombinedOut(BaseModel):
 class VersionOut(BaseModel):
     software_version: str = "0.0.0"
     model_name:       str
-    model_version:    str | int  # ← accepte les deux
+    model_version:    str | int
     # run_id:           str | None
     # stage:            str

@@ -1,4 +1,3 @@
-# api/main.py
 import os
 import sqlite3
 import logging
@@ -11,8 +10,7 @@ import pandas as pd
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram, Gauge
 from src.monitoring.monitoring import  generate_monitoring_data
-
-
+from inference.get_run import get_latest_run_metadata
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -92,16 +90,19 @@ def get_combined(
     return [dict(r) for r in rows]
 
 
+
 @app.get("/version", response_model=VersionOut)
 def get_version():
     try:
-        champion = get_champion_version(CONFIG["model"]["name"])
-        if not champion:
-            raise HTTPException(status_code=404, detail="Aucun modèle champion trouvé.")
+        model_metadata = get_latest_run_metadata()
+        print(model_metadata)
+        if not model_metadata:
+            raise HTTPException(status_code=404, detail="Aucune version trouvé.")
 
         return {
-            "model_name":    champion["model_name"],
-            "model_version": champion["version"],
+            "model_name":    model_metadata["name"],
+            "model_version": model_metadata["version"],
+            "software_version": "0.0.0"
 
         }
     except HTTPException:

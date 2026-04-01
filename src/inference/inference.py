@@ -42,7 +42,7 @@ def run_inference(run_date=None):
         n_features
     )[0]  
 
-    # ── Timestamps futurs ──
+
     forecast_index = pd.date_range(
         start=df_resampled.index[-1] + pd.Timedelta(hours=3),
         periods=horizon,

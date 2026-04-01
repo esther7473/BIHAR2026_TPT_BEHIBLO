@@ -15,9 +15,7 @@ from src.data.database import load_weather_data, save_predictions
 import pickle
 
 
-# ─────────────────────────────────────────
-# Modèle
-# ─────────────────────────────────────────
+
 
 def build_model(input_shape, horizon, lstm_units_l1, lstm_units_l2, dropout, lr):
     model = Sequential([
@@ -33,10 +31,6 @@ def build_model(input_shape, horizon, lstm_units_l1, lstm_units_l2, dropout, lr)
     return model
 
 
-# ─────────────────────────────────────────
-# Inverse transform
-# ─────────────────────────────────────────
-
 def inverse_transform_multi(preds, scaler, n_features):
     """Inverse le scaling sur la colonne température uniquement."""
     result = []
@@ -48,12 +42,10 @@ def inverse_transform_multi(preds, scaler, n_features):
     return np.array(result).T
 
 
-# ─────────────────────────────────────────
-# Entraînement
-# ─────────────────────────────────────────
+
 
 def train():
-    # ── Params ──
+
     lookback      = CONFIG["model"]["lookback"]
     horizon       = CONFIG["model"]["horizon"]
     epochs        = CONFIG["model"]["epochs"]
@@ -65,7 +57,6 @@ def train():
     lr            = CONFIG["model"]["lr"]
     n_splits      = CONFIG["data"]["n_splits"]
 
-    # ── Données ──
     df   = load_weather_data()
     data = run_preprocessing(df)
 
@@ -76,7 +67,7 @@ def train():
     scaler     = data["scaler"]
     n_features = X_train.shape[2]
 
-    # ── Cross-Validation ──
+
     print(f"\n Cross-Validation ({n_splits} folds)...")
     tscv = TimeSeriesSplit(n_splits=n_splits)
     mae_scores, rmse_scores = [], []
@@ -102,7 +93,6 @@ def train():
 
         preds_cv = model_cv.predict(X_val, verbose=0)
 
-        # ✅ inverse transform en °C
         preds_cv_real = inverse_transform_multi(preds_cv, scaler, n_features)
         y_val_real    = inverse_transform_multi(y_val,    scaler, n_features)
 
@@ -116,8 +106,8 @@ def train():
 
     mae_cv  = round(float(np.mean(mae_scores)),  2)
     rmse_cv = round(float(np.mean(rmse_scores)), 2)
-    print(f"\n  ✅ MAE CV moyen  : {mae_cv:.2f}°C")
-    print(f"  ✅ RMSE CV moyen : {rmse_cv:.2f}°C")
+    print(f"\n   MAE CV moyen  : {mae_cv:.2f}°C")
+    print(f"   RMSE CV moyen : {rmse_cv:.2f}°C")
 
     # ── MLflow ──
     mlflow.set_tracking_uri(CONFIG["mlflow"]["tracking_uri"])
@@ -136,7 +126,7 @@ def train():
 
     with mlflow.start_run(run_name=run_name):
 
-        # ── Log hyperparamètres ──
+
         mlflow.log_params({
             "lookback":       lookback,
             "horizon":        horizon,
@@ -150,13 +140,12 @@ def train():
             "n_splits":       n_splits,
         })
 
-        # ── Log métriques CV ──
+
         mlflow.log_metrics({
             "cv_mae":  mae_cv,
             "cv_rmse": rmse_cv,
         })
 
-        # ── Entraînement final ──
         print("\n  Entraînement final...")
         model = build_model(
             (X_train.shape[1], X_train.shape[2]),
@@ -171,7 +160,6 @@ def train():
             callbacks=[EarlyStopping(patience=5, restore_best_weights=True)],
         )
 
-        # ── Signature ──
         sample_input  = X_train[:5]
         sample_output = model.predict(sample_input, verbose=0)
         signature     = infer_signature(
@@ -179,12 +167,11 @@ def train():
             model_output=sample_output
         )
 
-        # ── Évaluation scaled ──
         preds_scaled = model.predict(X_test, verbose=0)
         mae_scaled   = mean_absolute_error(y_test, preds_scaled)
         rmse_scaled  = root_mean_squared_error(y_test, preds_scaled)
 
-        # ── Évaluation réelle ──
+
         preds_real = inverse_transform_multi(preds_scaled, scaler, n_features)
         y_real     = inverse_transform_multi(y_test,       scaler, n_features)
         mae_real   = mean_absolute_error(y_real, preds_real)
@@ -193,7 +180,7 @@ def train():
         print(f"\n Scaled  — MAE: {mae_scaled:.4f} | RMSE: {rmse_scaled:.4f}")
         print(f" Réel    — MAE: {mae_real:.2f}°C  | RMSE: {rmse_real:.2f}°C")
 
-        # ── Log métriques epoch par epoch ──
+
         for epoch, (loss, val_loss) in enumerate(zip(
             history.history["loss"],
             history.history["val_loss"]
@@ -203,7 +190,7 @@ def train():
                 "val_loss":   round(val_loss, 4),
             }, step=epoch)
 
-        # ── Log métriques finales ──
+
         mlflow.log_metrics({
             "mae_scaled":  round(mae_scaled,  2),
             "rmse_scaled": round(rmse_scaled, 2),
@@ -212,14 +199,14 @@ def train():
             "epochs_run":  len(history.history["loss"]),
         })
 
-        # ── Sauvegarde scaler ──
+
         scaler_path = CONFIG["paths"]["scaler_path"]
         with open(scaler_path, "wb") as f:
             pickle.dump(scaler, f)
         mlflow.log_artifact(scaler_path, artifact_path="scaler")
         print(f" Scaler sauvegardé : {scaler_path}")
 
-        # ── Sauvegarde modèle ──
+
         mlflow.keras.log_model(
             model,
             name="model",

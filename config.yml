@@ -33,4 +33,4 @@ model:
 
 mlflow:
   experiment_name: "temperature_forecast"
-  tracking_uri:    "sqlite:///mlruns.db"   
+  tracking_uri:   "mlruns"  

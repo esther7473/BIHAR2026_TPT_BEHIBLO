@@ -1,0 +1,9 @@
+Dans votre README ou CONTRIBUTING, listez les secrets nécessaires sans révéler leur valeur :
+
+## Secrets requis
+
+| Secret | Description | Où le trouver |
+|--------|-------------|---------------|
+| DOCKER_TOKEN | Token Docker Hub | hub.docker.com → Account Settings → Security |
+| NPM_TOKEN | Token npm automation | npmjs.com → Access Tokens → Generate |
+| AWS_ACCESS_KEY_ID | Clé IAM (deployer) | Console AWS → IAM → Users → Security credentials |

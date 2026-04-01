@@ -25,9 +25,8 @@ def db():
     conn    = sqlite3.connect(":memory:", check_same_thread=False)
     wrapped = NoCloseConnection(conn)
 
-    # get_connection retourne toujours le même wrapper (avec init_db intégré)
     with patch("src.data.database.get_connection", return_value=wrapped):
-        init_db(conn)  # 👈 on passe la vraie connexion pour initialiser les tables
+        init_db(conn) 
         yield wrapped
 
     conn.close()
