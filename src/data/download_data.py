@@ -1,7 +1,7 @@
 import pandas as pd
 import requests
 from src.common.common import CONFIG
-from src.data.database import save_weather_data, get_last_timestamp  # ✅ imports absolus
+from src.data.database import save_weather_data, get_last_timestamp 
 
 URL       = CONFIG["api"]["url"]
 LATITUDE  = CONFIG["api"]["latitude"]
@@ -24,14 +24,14 @@ def fetch_temperature(start_date=None, end_date=None):
     data = response.json()
 
     df = pd.DataFrame({
-        "timestamp":   data["hourly"]["time"],        # ✅ timestamp au lieu de datetime
+        "timestamp":   data["hourly"]["time"],    
         "temperature": data["hourly"][VARIABLE]
     })
     df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df = df.set_index("timestamp")                    # ✅ index nommé timestamp
+    df = df.set_index("timestamp")                    
 
     save_weather_data(df)
-    print(f"✅ {len(df)} observations sauvegardées ({params['start_date']} → {params['end_date']})")
+    print(f" {len(df)} observations sauvegardées ({params['start_date']} → {params['end_date']})")
     return df
 
 
@@ -46,7 +46,7 @@ def fetch_recent_data(end_date=END):
         print(f"Dernière date en BDD : {last_date}")
 
     if start_date >= end_date:
-        print("✅ Données déjà à jour")
+        print(" Données déjà à jour")
         return None
 
     return fetch_temperature(start_date=start_date, end_date=end_date)

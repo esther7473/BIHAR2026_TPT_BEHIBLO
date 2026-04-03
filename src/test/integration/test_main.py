@@ -14,7 +14,7 @@ def test_get_predictions_not_found():
 
 def test_get_predictions():
     response = requests.get(BASE_URL + "/predictions")
-    assert response.status_code in [200, 404]  # 404 si BD vide
+    assert response.status_code in [200, 404]  
 
 def test_get_version_no_champion():
     response = requests.get(BASE_URL + "/version")
@@ -22,4 +22,4 @@ def test_get_version_no_champion():
 
 def test_get_combined_missing_params():
     response = requests.get(BASE_URL + "/predictions/combined")
-    assert response.status_code == 422  # ✅ paramètres manquants
+    assert response.status_code == 422  

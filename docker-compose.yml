@@ -1,0 +1,39 @@
+services:
+  api:
+    build:
+      context: .
+      target: serving 
+    networks:
+      - monitoring 
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring 
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    # environment:
+    #   - GF_SECURITY_ADMIN_PASSWORD=admin  
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning  
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring 
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  monitoring:
+    driver: bridge

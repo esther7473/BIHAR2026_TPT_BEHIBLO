@@ -1,6 +1,4 @@
 import pandas as pd
-# from database import save_weather_data
-
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -10,9 +8,6 @@ from src.common.common import CONFIG
 FEATURE_COLS = ["temperature", "hour_sin", "hour_cos", "month_sin", "month_cos"]
 
 
-# ─────────────────────────────────────────
-# Étapes individuelles
-# ─────────────────────────────────────────
 
 def clean_raw(df):
     """Supprime les colonnes inutiles et renomme latitude/longitude → timestamp/temperature."""
@@ -26,13 +21,11 @@ def clean_raw(df):
 
 
 def resample_3h(df):
-    """Rééchantillonne la température à 3h et retourne un DataFrame."""
-    freq = CONFIG["data"]["resample_freq"]   # ex: "3h"
+    freq = CONFIG["data"]["resample_freq"]  
     return df["temperature"].resample(freq).mean().to_frame()
 
 
 def add_cyclic_features(df):
-    """Ajoute les features cycliques heure et mois (sin/cos)."""
     df = df.copy()
     df["hour_sin"]   = np.sin(2 * np.pi * df.index.hour  / 24)
     df["hour_cos"]   = np.cos(2 * np.pi * df.index.hour  / 24)
@@ -77,9 +70,6 @@ def create_sequences(data, lookback, horizon):
     return X, y
 
 
-# ─────────────────────────────────────────
-# Pipeline principale
-# ─────────────────────────────────────────
 
 def run_preprocessing(df_raw):
     """
@@ -89,18 +79,14 @@ def run_preprocessing(df_raw):
     lookback = CONFIG["model"]["lookback"]
     horizon  = CONFIG["model"]["horizon"]
 
-    # 1. Resample + features cycliques
-    df = resample_3h(df_raw)        # → (N, 1) colonne temperature à 3h
-    df = add_cyclic_features(df)    # → (N, 5) + hour_sin/cos, month_sin/cos
+    df = resample_3h(df_raw)        
+    df = add_cyclic_features(df)   
     df = remove_missing(df)
 
-    # 2. Split temporel
     train, test = train_test_split_ts(df)
 
-    # 3. Normalisation
     scaled_train, scaled_test, scaler = scale_data(train, test)
 
-    # 4. Séquences LSTM
     X_train, y_train = create_sequences(scaled_train, lookback, horizon)
     X_test,  y_test  = create_sequences(scaled_test,  lookback, horizon)
 
@@ -113,7 +99,7 @@ def run_preprocessing(df_raw):
         "train":   train,
         "test":    test,
         "scaler":  scaler,
-        "scaled_data": np.vstack([scaled_train, scaled_test]),  # ← toutes les données normalisées
+        "scaled_data": np.vstack([scaled_train, scaled_test]), 
         "X_train": X_train,
         "y_train": y_train,
         "X_test":  X_test,
@@ -124,6 +110,6 @@ def prepare_inference_input(df_raw, scaler, lookback):
     df     = resample_3h(df_raw)
     df     = add_cyclic_features(df)
     df     = remove_missing(df)
-    scaled = scaler.transform(df)          # ← passe le DataFrame directement
+    scaled = scaler.transform(df)         
     last_sequence = scaled[-lookback:]
     return df, scaled, last_sequence

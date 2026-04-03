@@ -23,3 +23,6 @@ src/test/
 conftest.py
 # logs
 *.log
+
+# A supprimer
+promote_champion.py

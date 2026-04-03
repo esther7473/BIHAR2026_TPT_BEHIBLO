@@ -1,7 +1,16 @@
 import pytest
 import sqlite3
-from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
+import sys
+
+
+prometheus_mock = MagicMock()
+prometheus_mock.Instrumentator.return_value.instrument.return_value.expose.return_value = None
+
+sys.modules.setdefault("prometheus_fastapi_instrumentator", prometheus_mock)
+sys.modules.setdefault("prometheus_client", MagicMock())
+
+from fastapi.testclient import TestClient
 from api.main import app
 
 
@@ -41,16 +50,12 @@ def client(db):
         try:
             yield db
         finally:
-            pass  # ne pas fermer la BD de test
-
+            pass 
     app.dependency_overrides[__import__("api.main", fromlist=["get_db"]).get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
 
 
-# ─────────────────────────────────────────
-# Tests /predictions
-# ─────────────────────────────────────────
 
 def test_get_predictions(client):
     response = client.get("/predictions")
@@ -101,32 +106,7 @@ def test_get_combined_not_found(client):
     assert response.status_code == 404
 
 
-# ─────────────────────────────────────────
-# Tests /version
-# ─────────────────────────────────────────
 
-# def test_get_version_champion(client):
-#     with patch("api.main.os.path.exists", return_value=True), \
-#          patch("api.main.os.path.getmtime", return_value=1742985600.0):
-
-#         response = client.get("/version")
-#         assert response.status_code == 200
-#         data = response.json()
-#         assert data["model_name"]    == CONFIG["model"]["name"]
-#         assert data["model_version"] == "2025-03-26 08:00:00"
-
-
-# def test_get_version_no_model(client):
-#     with patch("api.main.os.path.exists", return_value=False):
-
-#         response = client.get("/version")
-#         assert response.status_code == 404
-#         assert "Aucun modèle" in response.json()["detail"]
-
-
-# ─────────────────────────────────────────
-# Test /
-# ─────────────────────────────────────────
 
 def test_root_redirect(client):
     response = client.get("/", follow_redirects=False)
