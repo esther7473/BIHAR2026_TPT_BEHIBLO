@@ -53,7 +53,8 @@ jobs:
       needs: [versioning, unit-tests]
 
       permissions:
-        contents: write 
+         contents: read
+         packages: write
       steps:
 
         - name: Checkout
