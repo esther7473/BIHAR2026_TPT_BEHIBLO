@@ -1,7 +1,16 @@
 import pytest
 import sqlite3
-from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
+import sys
+
+
+prometheus_mock = MagicMock()
+prometheus_mock.Instrumentator.return_value.instrument.return_value.expose.return_value = None
+
+sys.modules.setdefault("prometheus_fastapi_instrumentator", prometheus_mock)
+sys.modules.setdefault("prometheus_client", MagicMock())
+
+from fastapi.testclient import TestClient
 from api.main import app
 
 
