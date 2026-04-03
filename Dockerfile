@@ -20,6 +20,6 @@ FROM base AS streamlit
 COPY requirements/streamlit.txt .
 RUN pip install --no-cache-dir -r streamlit.txt
 COPY src/common/     ./src/common/
-COPY app/            ./app/
+COPY monitoring/app_streamlit.py      ./app/app_streamlit.py 
 EXPOSE 8501
-CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app/app_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]
