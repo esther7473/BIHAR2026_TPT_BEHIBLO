@@ -106,32 +106,7 @@ def test_get_combined_not_found(client):
     assert response.status_code == 404
 
 
-# ─────────────────────────────────────────
-# Tests /version
-# ─────────────────────────────────────────
 
-# def test_get_version_champion(client):
-#     with patch("api.main.os.path.exists", return_value=True), \
-#          patch("api.main.os.path.getmtime", return_value=1742985600.0):
-
-#         response = client.get("/version")
-#         assert response.status_code == 200
-#         data = response.json()
-#         assert data["model_name"]    == CONFIG["model"]["name"]
-#         assert data["model_version"] == "2025-03-26 08:00:00"
-
-
-# def test_get_version_no_model(client):
-#     with patch("api.main.os.path.exists", return_value=False):
-
-#         response = client.get("/version")
-#         assert response.status_code == 404
-#         assert "Aucun modèle" in response.json()["detail"]
-
-
-# ─────────────────────────────────────────
-# Test /
-# ─────────────────────────────────────────
 
 def test_root_redirect(client):
     response = client.get("/", follow_redirects=False)

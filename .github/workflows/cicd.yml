@@ -143,14 +143,14 @@ jobs:
 
   merge:
     runs-on: ubuntu-24.04
-    needs: build-and-push
+    needs: [build-and-push, integration-tests]
     steps:
       
       - name: Checkout
         uses: actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5
         with:
             ref: ${{ github.sha }}
-
+            fetch-depth: 0       
 
       - name: Merge dev into main
         run: |

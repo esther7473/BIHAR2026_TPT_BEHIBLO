@@ -4,9 +4,12 @@ from src.common.common import CONFIG
 
 
 def get_latest_run_metadata():
-    mlruns_path       = CONFIG["mlflow"]["tracking_uri"]
+    mlruns_path = CONFIG["mlflow"]["tracking_uri"]
     models_path = os.path.join(mlruns_path, "models")
     
+    if not os.path.exists(models_path):
+        return None
+
     versions = []
     for model_name in os.listdir(models_path):
         model_path = os.path.join(models_path, model_name)
@@ -18,4 +21,4 @@ def get_latest_run_metadata():
                 versions.append(meta)
 
     versions.sort(key=lambda x: x.get("version", 0), reverse=True)
-    return versions[0] if versions else {}
+    return versions[0] if versions else None  
