@@ -87,7 +87,7 @@ jobs:
  
   integration-tests:
     runs-on: ubuntu-24.04
-    needs: build-and-push
+    needs: [build-and-push, versioning]  
     steps:
       - name: Log in to GHCR
         run: |
@@ -104,8 +104,7 @@ jobs:
           docker run -d \
             --name weather-api \
             -p 8000:8000 \
-            ghcr.io/${{ steps.repo.outputs.name }}:{{ needs.versioning.outputs.version }}
-
+            ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }} 
 
       - name: Wait for API to be ready
         run: |
@@ -128,14 +127,13 @@ jobs:
 
       - name: Show app logs on failure
         if: failure()
-        run: docker logs <nom_du_container>
+        run: docker logs weather-api   
 
       - name: Stop container
         if: always()
         run: |
           docker stop weather-api
           docker rm weather-api
-
 
   merge:
     runs-on: ubuntu-24.04

@@ -102,7 +102,7 @@ def get_version():
         return {
             "model_name":    model_metadata["name"],
             "model_version": model_metadata["version"],
-            "software_version": "0.0.0"
+            "software_version": os.getenv("GIT_SHA", "unknown")
 
         }
     except HTTPException:
