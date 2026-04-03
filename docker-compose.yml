@@ -1,10 +1,23 @@
 services:
   api:
-    build:
-      context: .
-      target: serving 
+    image: ghcr.io/esther7473/bihar2026_tpt_behiblo-api:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mlruns:/app/mlruns
+      - ./data:/app/data
     networks:
-      - monitoring 
+      - monitoring
+
+  streamlit:
+    image: ghcr.io/esther7473/bihar2026_tpt_behiblo-streamlit:latest
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    networks:
+      - monitoring
+
   prometheus:
     image: prom/prometheus
     ports:
@@ -13,22 +26,19 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     networks:
-      - monitoring 
+      - monitoring
 
   grafana:
     image: grafana/grafana
     ports:
       - "3000:3000"
-    # environment:
-    #   - GF_SECURITY_ADMIN_PASSWORD=admin  
-
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning  
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus
     networks:
-      - monitoring 
+      - monitoring
 
 volumes:
   prometheus_data:

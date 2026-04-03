@@ -79,12 +79,25 @@ jobs:
               --target serving \
               --build-arg GIT_SHA=${{ github.sha }} \
               -t ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }}  .
+              -t ghcr.io/${{ steps.repo.outputs.name }}:latest \
 
         - name: Push serving image
           run: |
-            docker push ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }}
-  
- 
+            docker push ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }} \
+            docker push ghcr.io/${{ steps.repo.outputs.name }}:latest
+
+        - name: Build streamlit
+          run: |
+            docker build --target streamlit \
+              -t ghcr.io/${{ steps.repo.outputs.name }}-streamlit:${{ needs.versioning.outputs.version }} .
+              -t ghcr.io/${{ steps.repo.outputs.name }}-streamlit:latest
+
+        - name: push streamlit
+          run: |
+            docker push ghcr.io/${{ steps.repo.outputs.name }}-streamlit:${{ needs.versioning.outputs.version }}  \
+            docker push ghcr.io/${{ steps.repo.outputs.name }}-streamlit:latest
+        
+        
   integration-tests:
     runs-on: ubuntu-24.04
     needs: [build-and-push, versioning]  
@@ -102,7 +115,8 @@ jobs:
       - name: Start API container
         run: |
           docker run -d \
-            --name weather-api \
+            --name London-weather-api \
+            --label org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
             -p 8000:8000 \
             ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }} 
 

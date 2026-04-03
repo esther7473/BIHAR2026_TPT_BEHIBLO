@@ -1,4 +1,4 @@
-prometheus-fastapi-instrumentator
-prometheus-client
+# prometheus-fastapi-instrumentator
+# prometheus-client
 streamlit 
 plotly
