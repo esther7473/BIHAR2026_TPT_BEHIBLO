@@ -149,13 +149,13 @@ jobs:
 
       - name: Show app logs on failure
         if: failure()
-        run: docker logs weather-api   
+        run: docker logs London-weather-api   
 
       - name: Stop container
         if: always()
         run: |
-          docker stop weather-api
-          docker rm weather-api
+          docker stop London-weather-api
+          docker rm London-weather-api
 
   merge:
     runs-on: ubuntu-24.04
