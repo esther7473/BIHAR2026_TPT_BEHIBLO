@@ -77,17 +77,13 @@ jobs:
           run: |
             docker build \
               --target serving \
+              --build-arg GIT_SHA=${{ github.sha }} \
               -t ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }}  .
- 
-    # \
-    # -t ghcr.io/${{ steps.repo.outputs.name }}:latest \
-             
+
         - name: Push serving image
           run: |
             docker push ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }}
-    # docker push ghcr.io/${{ steps.repo.outputs.name }}:latest
-
-    
+  
  
   integration-tests:
     runs-on: ubuntu-24.04
