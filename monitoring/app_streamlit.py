@@ -6,17 +6,15 @@ from plotly.subplots import make_subplots
 from src.common.common import CONFIG
 from datetime import datetime, timedelta
 
-# ── Config ────────────────────────────────────────────────────────────────────
 API_URL = CONFIG["api"]["app_api_url"]
 
 st.set_page_config(
-    page_title="Weather Forecast",
+    page_title="London Weather Forecast",
     page_icon="🌤️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ── Style ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
@@ -81,7 +79,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
 def check_api_status():
     try:
         r = requests.get(f"{API_URL}/", allow_redirects=False, timeout=2)
@@ -210,7 +207,7 @@ if not api_ok:
 # ══════════════════════════════════════════════════════════════════════════════
 # SECTION 1 — Prédictions
 # ══════════════════════════════════════════════════════════════════════════════
-st.markdown(f"### 📈 Prédictions  `{start_dt}` → `{end_dt}`")
+st.markdown(f"###  Prédictions  `{start_dt}` → `{end_dt}`")
 
 df = fetch_combined(start_dt, end_dt)
 
