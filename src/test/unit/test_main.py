@@ -47,9 +47,6 @@ def client(db):
     app.dependency_overrides.clear()
 
 
-# ─────────────────────────────────────────
-# Tests /predictions
-# ─────────────────────────────────────────
 
 def test_get_predictions(client):
     response = client.get("/predictions")

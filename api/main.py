@@ -10,7 +10,7 @@ import pandas as pd
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram, Gauge
 from src.monitoring.monitoring import  generate_monitoring_data
-from inference.get_run import get_latest_run_metadata
+from src.inference.get_run import get_latest_run_metadata
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
