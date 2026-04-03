@@ -72,7 +72,6 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
               -u ${{ github.actor }} \
               --password-stdin
-
         - name: Build serving image
           run: |
             docker build \
@@ -81,6 +80,7 @@ jobs:
               -t ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }} \
               -t ghcr.io/${{ steps.repo.outputs.name }}:latest \
               .
+
         - name: Push serving image
           run: |
             docker push ghcr.io/${{ steps.repo.outputs.name }}:${{ needs.versioning.outputs.version }}
@@ -88,15 +88,17 @@ jobs:
 
         - name: Build streamlit
           run: |
-            docker build --target streamlit \
-              -t ghcr.io/${{ steps.repo.outputs.name }}-streamlit:${{ needs.versioning.outputs.version }} .
-              -t ghcr.io/${{ steps.repo.outputs.name }}-streamlit:latest
+            docker build \
+              --target streamlit \
+              -t ghcr.io/${{ steps.repo.outputs.name }}-streamlit:${{ needs.versioning.outputs.version }} \
+              -t ghcr.io/${{ steps.repo.outputs.name }}-streamlit:latest \
+              .
 
-        - name: push streamlit
+        - name: Push streamlit
           run: |
-            docker push ghcr.io/${{ steps.repo.outputs.name }}-streamlit:${{ needs.versioning.outputs.version }}  \
+            docker push ghcr.io/${{ steps.repo.outputs.name }}-streamlit:${{ needs.versioning.outputs.version }}
             docker push ghcr.io/${{ steps.repo.outputs.name }}-streamlit:latest
-        
+                
         
   integration-tests:
     runs-on: ubuntu-24.04
