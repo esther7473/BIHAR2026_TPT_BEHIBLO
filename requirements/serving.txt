@@ -7,3 +7,4 @@ pytest
 pandas  
 keras
 prometheus-fastapi-instrumentator
+matplotlib        
