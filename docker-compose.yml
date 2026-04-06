@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/esther7473/bihar2026_tpt_behiblo-api:latest
+    image: ghcr.io/esther7473/bihar2026_tpt_behiblo:latest
     ports:
       - "8000:8000"
     volumes:
@@ -17,6 +17,8 @@ services:
       - api
     networks:
       - monitoring
+    environment:
+      - PYTHONPATH=/app
 
   prometheus:
     image: prom/prometheus
