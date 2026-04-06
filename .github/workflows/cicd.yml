@@ -38,7 +38,6 @@ jobs:
           cache-dependency-path: requirements/test.txt
 
       - name: Verify installation
-        # shell: bash
         run: python3 --version
 
       - name: Install dependencies

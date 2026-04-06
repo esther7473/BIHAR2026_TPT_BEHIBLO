@@ -148,7 +148,6 @@ PLOT_LAYOUT = dict(
 COLORS = ["#58a6ff", "#f78166", "#3fb950", "#d2a8ff", "#ffa657", "#79c0ff"]
 
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🌤 Weather Forecast")
     st.markdown("---")
@@ -166,7 +165,7 @@ with st.sidebar:
         st.markdown(f"**Version** `{version.get('model_version', '—')}`")
 
     st.markdown("---")
-    st.markdown("### 📅 Période — Prédictions")
+    st.markdown("###  Période — Prédictions")
 
     default_end   = datetime.now()
     default_start = default_end - timedelta(days=3)
@@ -196,17 +195,12 @@ with st.sidebar:
     st.button("⟳ Actualiser")
 
 
-# ── Guard ─────────────────────────────────────────────────────────────────────
 st.markdown("# Prédictions météo")
 
 if not api_ok:
     st.error(" L'API est inaccessible.")
     st.stop()
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SECTION 1 — Prédictions
-# ══════════════════════════════════════════════════════════════════════════════
 st.markdown(f"###  Prédictions  `{start_dt}` → `{end_dt}`")
 
 df = fetch_combined(start_dt, end_dt)
