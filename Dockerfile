@@ -16,10 +16,12 @@ ENV GIT_SHA=$GIT_SHA
 EXPOSE 8000
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
+
 FROM base AS streamlit
 COPY requirements/streamlit.txt .
 RUN pip install --no-cache-dir -r streamlit.txt
 COPY src/common/     ./src/common/
+COPY config.yml             ./config.yml       
 COPY monitoring/app_streamlit.py      ./app/app_streamlit.py 
 EXPOSE 8501
 CMD ["streamlit", "run", "app/app_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]
