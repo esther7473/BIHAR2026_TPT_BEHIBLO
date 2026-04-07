@@ -10,7 +10,6 @@ FEATURE_COLS = ["temperature", "hour_sin", "hour_cos", "month_sin", "month_cos"]
 
 
 def clean_raw(df):
-    """Supprime les colonnes inutiles et renomme latitude/longitude → timestamp/temperature."""
     df = df.drop(columns=["elevation", "utc_offset_seconds", "timezone", "timezone_abbreviation"])
     df = df.drop(df.index[[0, 1]])
     df = df.rename(columns={"latitude": "timestamp", "longitude": "temperature"})
@@ -39,7 +38,6 @@ def remove_missing(df):
 
 
 def train_test_split_ts(df):
-    """Split temporel : 1 an de test (8 points/jour × 365 jours)."""
     test_size = CONFIG["data"]["test_size"]   
     train = df.iloc[:-test_size]
     test  = df.iloc[-test_size:]
@@ -47,7 +45,6 @@ def train_test_split_ts(df):
 
 
 def scale_data(train, test):
-    """Fit le scaler sur train, transforme train et test."""
     scaler       = MinMaxScaler()
     scaled_train = scaler.fit_transform(train)
     scaled_test  = scaler.transform(test)
@@ -55,11 +52,6 @@ def scale_data(train, test):
 
 
 def create_sequences(data, lookback, horizon):
-    """
-    Construit les séquences (X, y) pour le LSTM multioutput.
-    X : (N, lookback, n_features)
-    y : (N, horizon)  — température uniquement (col 0)
-    """
     X, y = [], []
     for i in range(len(data) - lookback - horizon):
         X.append(data[i : i + lookback])
@@ -72,10 +64,6 @@ def create_sequences(data, lookback, horizon):
 
 
 def run_preprocessing(df_raw):
-    """
-    Entrée  : df issu de load_weather_data() — index datetime, colonne temperature
-    Sortie  : dict avec X_train, y_train, X_test, y_test, scaler, train, test, df
-    """
     lookback = CONFIG["model"]["lookback"]
     horizon  = CONFIG["model"]["horizon"]
 

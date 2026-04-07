@@ -31,7 +31,7 @@ def fetch_temperature(start_date=None, end_date=None):
     df = df.set_index("timestamp")                    
 
     save_weather_data(df)
-    print(f" {len(df)} observations sauvegardées ({params['start_date']} → {params['end_date']})")
+    print(f" {len(df)} observations sauvegardées ({params['start_date']} --- {params['end_date']})")
     return df
 
 
@@ -40,7 +40,7 @@ def fetch_recent_data(end_date=END):
 
     if last_date is None:
         start_date = CONFIG["api"]["start_date"]
-        print("BDD vide → téléchargement complet")
+        print("BDD vide --- téléchargement complet")
     else:
         start_date = (last_date + pd.Timedelta(hours=1)).strftime("%Y-%m-%d")
         print(f"Dernière date en BDD : {last_date}")

@@ -45,7 +45,6 @@ def db():
 
 @pytest.fixture
 def client(db):
-    """Client de test avec BD injectée."""
     def override_get_db():
         try:
             yield db
@@ -82,9 +81,6 @@ def test_get_predictions_not_found(client):
     assert response.status_code == 404
 
 
-# ─────────────────────────────────────────
-# Tests /predictions/combined
-# ─────────────────────────────────────────
 
 def test_get_combined(client):
     response = client.get(

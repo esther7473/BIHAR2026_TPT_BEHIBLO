@@ -6,6 +6,12 @@ services:
     volumes:
       - ./mlruns:/app/mlruns
       - ./data:/app/data
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - monitoring
 
@@ -14,7 +20,8 @@ services:
     ports:
       - "8501:8501"
     depends_on:
-      - api
+      api:
+       condition: service_healthy
     networks:
       - monitoring
     environment:
@@ -22,6 +29,8 @@ services:
 
   prometheus:
     image: prom/prometheus
+    depends_on:
+    - api 
     ports:
       - "9090:9090"
     volumes:
@@ -39,6 +48,8 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus
+    env_file:
+    - .env
     networks:
       - monitoring
 

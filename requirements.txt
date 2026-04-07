@@ -1,9 +1,0 @@
-fastapi
-mlflow
-numpy
-pandas
-pydantic
-PyYAML
-requests
-scikit-learn
-tensorflow

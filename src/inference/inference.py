@@ -57,7 +57,7 @@ def run_inference(run_date=None):
         horizon=horizons
     )
 
-    print(f" Prédictions sauvegardées ({forecast_index[0]} → {forecast_index[-1]})")
+    print(f" Prédictions sauvegardées ({forecast_index[0]} --- {forecast_index[-1]})")
     return forecast_index, forecast_real
 
 
