@@ -32,7 +32,6 @@ def build_model(input_shape, horizon, lstm_units_l1, lstm_units_l2, dropout, lr)
 
 
 def inverse_transform_multi(preds, scaler, n_features):
-    """Inverse le scaling sur la colonne température uniquement."""
     result = []
     for i in range(preds.shape[1]):
         temp = np.zeros((len(preds), n_features))

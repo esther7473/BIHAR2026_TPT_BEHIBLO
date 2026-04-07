@@ -42,18 +42,6 @@ def init_db(conn=None):
         )
     """)
 
-    # cursor.execute("""
-    #     CREATE TABLE IF NOT EXISTS model_registry (
-    #         id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    #         model_name   TEXT,
-    #         version      INTEGER,
-    #         run_id       TEXT,
-    #         rmse         REAL,
-    #         promoted_at  TEXT DEFAULT (datetime('now')),
-    #         is_champion  INTEGER DEFAULT 1
-    #     )
-    # """)
-
     conn.commit()
     if close_after:
         conn.close()
@@ -110,10 +98,7 @@ def get_last_timestamp():
 
 
 def get_context(n_points):
-    """
-    Récupère les n_points dernières observations depuis la BDD
-    pour construire le contexte d'entrée des modèles
-    """
+ 
     conn  = get_connection()
     query = f"""
         SELECT timestamp, temperature 
@@ -138,12 +123,3 @@ def save_model_version(model_name: str, version: int, run_id: str, rmse: float):
     conn.close()
 
 
-# def get_champion_version(model_name: str):
-#     conn = get_connection()
-#     conn.row_factory = sqlite3.Row
-#     row = conn.execute("""
-#         SELECT * FROM model_registry
-#         WHERE model_name = ? AND is_champion = 1
-#     """, [model_name]).fetchone()
-#     conn.close()
-#     return dict(row) if row else None

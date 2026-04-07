@@ -149,13 +149,13 @@ COLORS = ["#58a6ff", "#f78166", "#3fb950", "#d2a8ff", "#ffa657", "#79c0ff"]
 
 
 with st.sidebar:
-    st.markdown("## 🌤 Weather Forecast")
+    st.markdown("##  Weather Forecast")
     st.markdown("---")
 
     api_ok = check_api_status()
     status_html = (
-        '<span class="status-up">● ONLINE</span>' if api_ok
-        else '<span class="status-down">● OFFLINE</span>'
+        '<span class="status-up"> ONLINE</span>' if api_ok
+        else '<span class="status-down"> OFFLINE</span>'
     )
     st.markdown(f"**API Status** &nbsp; {status_html}", unsafe_allow_html=True)
 
@@ -288,9 +288,7 @@ else:
             )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SECTION 2 — Monitoring
-# ══════════════════════════════════════════════════════════════════════════════
+
 st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
 st.markdown("### 🔬 Monitoring — Erreurs de prédiction")
 
@@ -310,7 +308,6 @@ monitor_result = fetch_monitoring(
 if monitor_result is None:
     st.info("Aucune donnée de monitoring disponible — les observations réelles ne sont peut-être pas encore disponibles pour cette période.")
 else:
-    # KPIs
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         st.metric("MAE", f"{monitor_result['mae']:.2f} °C")
@@ -323,7 +320,6 @@ else:
     df_mon["timestamp"] = pd.to_datetime(df_mon["timestamp"])
     df_mon["error"]     = df_mon["predicted_value"] - df_mon["observed"]
 
-    # ── Subplots ──────────────────────────────────────────────────────────────
     fig_mon = make_subplots(
         rows=2, cols=1,
         shared_xaxes=True,
@@ -331,7 +327,6 @@ else:
         vertical_spacing=0.06
     )
 
-    # Panel 1 — Observé vs Prédit
     fig_mon.add_trace(go.Scatter(
         x=df_mon["timestamp"], y=df_mon["observed"],
         mode="lines", name="Observé",
@@ -346,7 +341,6 @@ else:
         marker=dict(size=4)
     ), row=1, col=1)
 
-    # Panel 2 — Erreur point par point
     fig_mon.add_trace(go.Bar(
         x=df_mon["timestamp"],
         y=df_mon["error"],

@@ -9,14 +9,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def generate_monitoring_report(model_name: str = None, date: str = None) -> Path:
-    """
-    Compare les prédictions stockées avec les observations réelles.
-    
-    - model_name : filtre sur un modèle précis (optionnel)
-    - date       : filtre sur une date d'inférence précise au format YYYY-MM-DD (optionnel)
-    
-    Retourne le chemin du graphique généré.
-    """
+
     obs   = load_weather_data()                      
     preds = load_predictions(model_name=model_name)    
 
