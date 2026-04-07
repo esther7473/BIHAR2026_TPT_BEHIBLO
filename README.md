@@ -1,13 +1,13 @@
-#  Prévision de séries temporelles météorologiques pour la ville de Londre 
+#  Prévision de séries temporelles météorologiques pour la ville de Londres 
 
 ## Description du projet
 
-Ce projet implémente un pipeline MLOps complet pour la prévision de la température à Londres sur un horizon de **3 jours** avec un **pas de temps de 3 heures** (8 prédictions par jour, soit 24 valeurs au total).
+Ce projet implémente un pipeline MLOps complet pour la prévision de la température à Londres sur un horizon de 3 jours avec un pas de temps de 3 heures (8 prédictions par jour, soit 24 valeurs au total).
 
-Les données proviennent de l'API [Open-Meteo](https://open-meteo.com/) qui fournit des températures historiques issues de modèles de réanalyse. La ville choisie pour la prédiction est la ville de **Londres**. La série brute (pas horaire) est agrégée en pas de 3 heures : la valeur à 00h est la moyenne des valeurs mesurées à 00h, 01h et 02h, etc.
+Les données proviennent de l'API [Open-Meteo](https://open-meteo.com/) qui fournit des températures historiques issues de modèles de réanalyse. La ville choisie pour la prédiction est la ville de **Londres**. La série brute est agrégée en pas de 3 heures : la valeur à 00h est la moyenne des valeurs mesurées à 00h, 01h et 02h, etc.
 
 Trois approches ont été comparées :
-- une Baseline naïve** qui fait la répétition de la dernière valeur connue
+- une Baseline naïve qui fait la répétition de la dernière valeur connue
 - Un TCN multi_output qui prédit les 24 points en sortie 
 - Un LSTM multi-output qui prédit les 24 points en sortie 
 
@@ -57,7 +57,7 @@ Le modèle retenu est le LSTM multi_output
 │       ├── GET /predictions/combined                  │
 │       │        ← prédictions et températures réelles │
 │       └── GET /version                               │
-│                ← version logicielle et modèle        │
+│                ← version logicielle et version du modèle│
 └──────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────┐
@@ -141,10 +141,10 @@ Le modèle retenu est le LSTM multi_output
 
 Le fichier `config.yml` centralise tous les paramètres ( url de téléchargement, paramètres mlflow, etc) qui sont chargés par src/common/common.py.
 
+---
+### Workflow d'entraînement et d'inférence
 
-### Workflow d'entraînement
-
-Le workflow d'entraînement se décompose en 4 étapes :
+Le workflow d'entraînement et d'inférence se décompose en 5 étapes :
 
 **1. Acquisition des données**
 - Téléchargement des températures horaires depuis l'API Open-Meteo pour Londres (2019–2024)
@@ -181,13 +181,11 @@ python -m  src/main
 
 ```
 
-Les artefacts d'entrainement avec MLflow sont stockés dans `/mlruns`
-
-En local, lancez ```bash mlflow ui ``` pour accéder à l'interface mlflow et visualiser les runs.
+Les artefacts d'entrainement avec MLflow sont stockés dans `/mlruns`. En local, lancez ``` mlflow ui ``` pour accéder à l'interface mlflow et visualiser les runs.
 
 **Note :** Le pipeline d'entraînement et l'inférence  sont exécutés localement et indépendamment du déploiement. Ils ne sont pas inclus dans l'image Docker ni orchestrés via Docker Compose.
 
-
+----
 ### Lancer l'API avec Docker Compose
 
 * Récuperer la dernière version des images de serving et de streamlit:
@@ -215,7 +213,7 @@ La documentation interactive de l'api est disponible sur `http://localhost:8000/
 |---|---|---|
 | `GET` | `/predictions` | Prédictions filtrées par date et/ou modèle |
 | `GET` | `/predictions/combined` | Prédictions et  observations réelles sur une période |
-| `GET` | `/version` | Version logicielle (0.0.0 en local, SHA en CI) et version modèle |
+| `GET` | `/version` | Version logicielle  et version modèle |
 | `GET` | `/metrics` | Métriques Prometheus |
 
 ---
@@ -233,7 +231,7 @@ Le pipeline GitHub Actions est défini dans `.github/workflows/cicd.yml`. Il s'e
 
 **`unit-tests`** — installe les dépendances , exécute `pytest src/test/unit/` avec  Python 3.13.
 
-**`build-and-push`** — checkout du code au SHA exact, build du stage `serving` du Dockerfile multi-stage, push sur GHCR avec deux tags : la version précise  et `latest`. Dépend de `versioning` et de `unit-tests`
+**`build-and-push`** —  build des stages `serving` et `streamlit` du Dockerfile, push sur GHCR avec deux tags : la version précise  et `latest`. Dépend de `versioning` et de `unit-tests`.
 
 **`integration-tests`** — démarre le container de l'image fraîchement buildée, attend que l'API soit disponible, puis exécute `pytest src/test/integration/`.
 
