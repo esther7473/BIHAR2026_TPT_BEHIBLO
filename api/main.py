@@ -116,13 +116,13 @@ def get_version():
 @app.get("/monitoring")
 def monitoring(model_name: str = None, date: str = None):
     try:
+        result = generate_monitoring_data(model_name=model_name, date=date)
+        label  = model_name or "all"
+
         mae_gauge.labels(model_name=label).set(result["mae"])
         rmse_gauge.labels(model_name=label).set(result["rmse"])
 
-        for row in result["data"]:
-            error = row["predicted_value"] - row["observed"]
-            prediction_error.labels(model_name=label).observe(error)
+        return result
 
-        return generate_monitoring_data(model_name=model_name, date=date)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
